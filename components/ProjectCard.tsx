@@ -7,11 +7,16 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project }: ProjectCardProps) {
   const screenshot = project.metadata?.screenshot;
-  const techStackRaw = project.metadata?.tech_stack || '';
-  const techStack = techStackRaw
-    .split(',')
-    .map((t: string) => t.trim())
-    .filter(Boolean);
+  const techStackValue = project.metadata?.tech_stack; // Changed: handle array or string values safely
+  const techStack = Array.isArray(techStackValue)
+    ? techStackValue
+        .filter((tech): tech is string => typeof tech === 'string' && tech.trim().length > 0)
+    : typeof techStackValue === 'string'
+      ? techStackValue
+          .split(',')
+          .map((t: string) => t.trim())
+          .filter(Boolean)
+      : [];
   const liveUrl = project.metadata?.live_url;
   const sourceUrl = project.metadata?.source_url;
   const description = project.metadata?.description || '';
