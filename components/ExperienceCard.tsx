@@ -1,4 +1,5 @@
 import type { WorkExperience } from '@/types';
+import { resolveMetafieldValue } from '@/lib/cosmic';
 
 interface ExperienceCardProps {
   experience: WorkExperience;
@@ -6,12 +7,12 @@ interface ExperienceCardProps {
 }
 
 export default function ExperienceCard({ experience, index }: ExperienceCardProps) {
-  const company = experience.metadata?.company || 'Company';
-  const role = experience.metadata?.role || experience.title;
-  const startDate = experience.metadata?.start_date;
-  const endDate = experience.metadata?.end_date;
+  const company = resolveMetafieldValue(experience.metadata?.company) || 'Company'; // Changed: safely resolve
+  const role = resolveMetafieldValue(experience.metadata?.role) || experience.title; // Changed: safely resolve
+  const startDate = resolveMetafieldValue(experience.metadata?.start_date); // Changed: safely resolve
+  const endDate = resolveMetafieldValue(experience.metadata?.end_date); // Changed: safely resolve
   const currentlyWorking = experience.metadata?.currently_working;
-  const description = experience.metadata?.description;
+  const description = resolveMetafieldValue(experience.metadata?.description); // Changed: safely resolve
 
   const formatDate = (dateStr: string | undefined): string => {
     if (!dateStr) return '';
@@ -22,8 +23,8 @@ export default function ExperienceCard({ experience, index }: ExperienceCardProp
     });
   };
 
-  const dateRange = `${formatDate(startDate)}${startDate ? ' — ' : ''}${
-    currentlyWorking ? 'Present' : formatDate(endDate)
+  const dateRange = `${formatDate(startDate || undefined)}${startDate ? ' — ' : ''}${
+    currentlyWorking ? 'Present' : formatDate(endDate || undefined)
   }`;
 
   const isEven = index % 2 === 0;

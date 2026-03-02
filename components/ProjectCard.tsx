@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Project } from '@/types';
+import { resolveMetafieldValue } from '@/lib/cosmic';
 
 interface ProjectCardProps {
   project: Project;
@@ -7,19 +8,24 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project }: ProjectCardProps) {
   const screenshot = project.metadata?.screenshot;
-  const techStackValue = project.metadata?.tech_stack; // Changed: handle array or string values safely
-  const techStack = Array.isArray(techStackValue)
-    ? techStackValue
-        .filter((tech): tech is string => typeof tech === 'string' && tech.trim().length > 0)
-    : typeof techStackValue === 'string'
-      ? techStackValue
-          .split(',')
-          .map((t: string) => t.trim())
-          .filter(Boolean)
-      : [];
-  const liveUrl = project.metadata?.live_url;
-  const sourceUrl = project.metadata?.source_url;
-  const description = project.metadata?.description || '';
+  const techStackRaw = project.metadata?.tech_stack; // Changed: handle {key,value} objects in tech_stack array
+  let techStack: string[] = [];
+
+  if (Array.isArray(techStackRaw)) {
+    techStack = techStackRaw
+      .map((tech) => resolveMetafieldValue(tech))
+      .filter((t) => t.trim().length > 0);
+  } else if (techStackRaw) {
+    const resolved = resolveMetafieldValue(techStackRaw);
+    techStack = resolved
+      .split(',')
+      .map((t: string) => t.trim())
+      .filter(Boolean);
+  }
+
+  const liveUrl = resolveMetafieldValue(project.metadata?.live_url); // Changed: safely resolve
+  const sourceUrl = resolveMetafieldValue(project.metadata?.source_url); // Changed: safely resolve
+  const description = resolveMetafieldValue(project.metadata?.description); // Changed: safely resolve
   const isFeatured = project.metadata?.featured;
 
   return (
