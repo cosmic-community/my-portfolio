@@ -1,14 +1,17 @@
 import type { Skill } from '@/types';
+import { resolveMetafieldValue } from '@/lib/cosmic';
 
 interface SkillCardProps {
   skill: Skill;
 }
 
 export default function SkillCard({ skill }: SkillCardProps) {
-  const name = skill.metadata?.name || skill.title;
-  const category = skill.metadata?.category;
-  const proficiency = skill.metadata?.proficiency;
-  const icon = skill.metadata?.icon;
+  const name = resolveMetafieldValue(skill.metadata?.name) || skill.title;
+  const category = resolveMetafieldValue(skill.metadata?.category); // Changed: safely resolve potential {key,value} object
+  const proficiency = typeof skill.metadata?.proficiency === 'number'
+    ? skill.metadata.proficiency
+    : Number(resolveMetafieldValue(skill.metadata?.proficiency)) || undefined; // Changed: safely resolve proficiency
+  const icon = resolveMetafieldValue(skill.metadata?.icon); // Changed: safely resolve potential {key,value} object
 
   const proficiencyLabel = (level: number | undefined): string => {
     if (!level) return '';

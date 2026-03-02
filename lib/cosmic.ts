@@ -9,6 +9,24 @@ export const cosmic = createBucketClient({
   apiEnvironment: 'staging',
 });
 
+/**
+ * Safely extract a string value from a Cosmic metafield value.
+ * Some metafield types (like select-dropdown) return {key, value} objects
+ * instead of plain strings. This helper handles both cases.
+ */
+export function resolveMetafieldValue(val: unknown): string {
+  if (val === null || val === undefined) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'number' || typeof val === 'boolean') return String(val);
+  if (typeof val === 'object' && 'value' in (val as Record<string, unknown>)) {
+    return String((val as Record<string, unknown>).value ?? '');
+  }
+  if (typeof val === 'object' && 'key' in (val as Record<string, unknown>)) {
+    return String((val as Record<string, unknown>).key ?? '');
+  }
+  return String(val);
+}
+
 export async function getProjects(): Promise<Project[]> {
   try {
     const response = await cosmic.objects
